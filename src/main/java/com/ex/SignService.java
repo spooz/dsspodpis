@@ -8,12 +8,16 @@ import eu.europa.esig.dss.client.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.pades.PAdESSignatureParameters;
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.xades.XAdESSignatureParameters;
+import eu.europa.esig.dss.xades.signature.XAdESService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Bartek on 29.11.2016.
@@ -21,25 +25,27 @@ import java.io.IOException;
 @Service
 public class SignService {
 
-    private static final String FOLDER_PATH = "F:/klucze/";
-    private static final String FOLDER_PATH_PADES = "F:/klucze/pades/";
+    private static final String FOLDER_PATH = "C:/podpis/";
 
     @Autowired
     private KeyStoreService keyStoreService;
 
+    private Set<String> signedFiles = new HashSet<>();
+
     public void sign(File file) throws IOException {
         DSSDocument toSignDocument = new FileDocument(file);
 
-        PAdESSignatureParameters parameters = new PAdESSignatureParameters();
-        parameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_T);
-        parameters.setSignaturePackaging(SignaturePackaging.ENVELOPED); // signature part of PDF
-        parameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
+        XAdESSignatureParameters parameters = new XAdESSignatureParameters ();
+        parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
+        parameters.setSignaturePackaging(SignaturePackaging.ENVELOPING); // signature part of PDF
+        parameters.setDigestAlgorithm(DigestAlgorithm.SHA1);
         parameters.setSigningCertificate(keyStoreService.getPrivateKey().getCertificate());
+        parameters.setCertificateChain(keyStoreService.getPrivateKey().getCertificateChain());
 
         // For LT-level signatures, we would need a TrustedListCertificateVerifier, but for level T,
         // a CommonCertificateVerifier is enough. (CookBook v 2.2 pg 28)
         CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
-        PAdESService service = new PAdESService(commonCertificateVerifier);
+        XAdESService service = new XAdESService (commonCertificateVerifier);
 
         // For now, just hard-code one specific time stamp server (the same as DSS demo app uses by default)
         OnlineTSPSource tspSource = new OnlineTSPSource("http://tsa.belgium.be/connect");
@@ -51,23 +57,20 @@ public class SignService {
 
         DSSDocument signedDocument = service.signDocument(toSignDocument, parameters, signatureValue);
 
-        int index = file.getName().indexOf(".");
-        String name = file.getName().substring(0, index);
+
+        signedDocument.save(FOLDER_PATH + file.getName() + ".xades");
 
 
-        signedDocument.save(FOLDER_PATH_PADES + name + ".pades");
     }
 
     @Scheduled(fixedDelay=15000)
     public void signFiles() throws IOException {
         for(File file : listFilesForFolder(new File(FOLDER_PATH))) {
-            ContentInfoUtil util = new ContentInfoUtil();
-            ContentInfo info = util.findMatch(file);
-            if(info != null && info.getContentType().equals(ContentType.PDF)) {
-
+            int index = file.getName().lastIndexOf(".");
+            String ext = file.getName().substring(index+1);
+            if(!signedFiles.contains(file.getName()) && !ext.equals("xades"))
                 sign(file);
-                file.delete();
-            }
+                signedFiles.add(file.getName());
         }
     }
 

@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Bartek on 29.11.2016.
@@ -23,24 +24,17 @@ import java.util.Date;
 @Service
 public class KeyStoreService {
 
-    private static final String KEYSTORE_TYPE = "PKCS12";
-    private static final String KEYSTORE_FILEPATH = "F:/klucze/user_a_rsa.p12";
-    private static final String KEYSTORE_PASSWORD = "password";
-
-
     private AbstractSignatureTokenConnection signingToken;
     private DSSPrivateKeyEntry privateKey;
 
+    private PasswordInputCallback passwordInputCallback = new CustomPasswordCallback();
+
     public KeyStoreService() {
-        String pkcs12TokenFile = KEYSTORE_FILEPATH;
-        signingToken = new Pkcs12SignatureToken(KEYSTORE_PASSWORD, pkcs12TokenFile);
-        privateKey = signingToken.getKeys().get(0);
 
-      /*  signingToken = new Pkcs11SignatureToken("path to pkcs lib");
-        privateKey = signingToken.getKeys().get(0);*/
+        signingToken = new MSCAPISignatureToken();
+        List<DSSPrivateKeyEntry> list = signingToken.getKeys();
 
-        /*signingToken = new MSCAPISignatureToken();
-        privateKey = signingToken.getKeys().get(0);*/
+        privateKey = list.get(0);
 
     }
 

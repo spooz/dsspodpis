@@ -31,10 +31,14 @@ public class KeyStoreService {
 
     public KeyStoreService() {
 
-        signingToken = new MSCAPISignatureToken();
+        /*signingToken = new MSCAPISignatureToken();
         List<DSSPrivateKeyEntry> list = signingToken.getKeys();
 
-        privateKey = list.get(0);
+        privateKey = list.get(0);*/
+
+            String pkcs12TokenFile = "C:/user_a_rsa.p12";
+            signingToken = new Pkcs12SignatureToken("password", pkcs12TokenFile);
+            privateKey = signingToken.getKeys().get(0);
 
     }
 

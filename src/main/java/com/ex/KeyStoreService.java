@@ -27,8 +27,6 @@ public class KeyStoreService {
     private AbstractSignatureTokenConnection signingToken;
     private DSSPrivateKeyEntry privateKey;
 
-    private PasswordInputCallback passwordInputCallback = new CustomPasswordCallback();
-
     public KeyStoreService() {
 
         /*signingToken = new MSCAPISignatureToken();
@@ -36,9 +34,9 @@ public class KeyStoreService {
 
         privateKey = list.get(0);*/
 
-            String pkcs12TokenFile = "C:/user_a_rsa.p12";
+           /* String pkcs12TokenFile = "C:/user_a_rsa.p12";
             signingToken = new Pkcs12SignatureToken("password", pkcs12TokenFile);
-            privateKey = signingToken.getKeys().get(0);
+            privateKey = signingToken.getKeys().get(0);*/
 
     }
 

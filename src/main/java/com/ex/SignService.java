@@ -25,12 +25,12 @@ import java.util.Set;
 public class SignService {
 
     @Value(value = "${folder.path}")
-    private String FOLDER_PATH;
+    public String FOLDER_PATH;
 
     @Autowired
     private KeyStoreService keyStoreService;
 
-    private Set<String> signedFiles = new HashSet<>();
+    public Set<String> signedFiles = new HashSet<>();
 
     @Scheduled(fixedDelay=15000)
     public void signFiles() throws IOException {
@@ -45,13 +45,13 @@ public class SignService {
               continue;
 
             if(extension.equals("pdf")) {
-                signPDF(file);
                 signedFiles.add(fileName);
+                signPDF(file);
             }
 
             if(extension.equals("xml")) {
-                signXML(file);
                 signedFiles.add(fileName);
+                signXML(file);
             }
 
         }
